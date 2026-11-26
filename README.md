@@ -59,6 +59,7 @@ Example Playbook
 
 Minimal Example 
 ----------------
+
 ```yaml
 - hosts: lighthouse
   become: true
