@@ -1,38 +1,79 @@
 Role Name
 =========
 
-A brief description of the role goes here.
+Ansible роль для установки и настройки [LightHouse](https://github.com/VKCOM/lighthouse) — легковесного веб-интерфейса для СУБД ClickHouse. Роль устанавливает веб-сервер Nginx, скачивает статические файлы LightHouse из GitHub-репозитория, разворачивает конфигурацию сайта Nginx через Jinja2-шаблоны и запускает веб-сервер.
 
 Requirements
 ------------
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- Ansible 2.10 или выше
+- Целевой хост: Ubuntu 20.04 (focal), 22.04 (jammy) или 24.04 (noble)
+- Права `sudo` на целевом хосте
+- Доступ в интернет для скачивания архива LightHouse с GitHub
+- Для полноценной работы LightHouse требуется запущенный экземпляр ClickHouse (сама роль ClickHouse не устанавливает)
 
 Role Variables
 --------------
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Все переменные определены в `defaults/main.yml` и могут быть переопределены на уровне плейбука или инвентаря.
+
+| Переменная | Описание | Значение по умолчанию |
+|------------|----------|-----------------------|
+| `lighthouse_repo_url` | Ссылка на архив с исходным кодом LightHouse | `"https://github.com/VKCOM/lighthouse/archive/refs/heads/master.tar.gz"` |
+| `lighthouse_install_dir` | Директория, куда будут распакованы файлы сайта | `"/var/www/lighthouse"` |
+| `nginx_config_path` | Путь к конфигурации сайта Nginx (sites-available) | `"/etc/nginx/sites-available/lighthouse"` |
+| `nginx_enabled_path` | Путь к симлинку для включения сайта в Nginx (sites-enabled) | `"/etc/nginx/sites-enabled/lighthouse"` |
+
+Конфигурация Nginx включает проксирование запросов к ClickHouse (по умолчанию на `http://localhost:8123`). Если ClickHouse находится на другом хосте, необходимо изменить шаблон `lighthouse_nginx.conf.j2`.
+
+Внутренние переменные хранятся в `vars/main.yml` и в данный момент пусты.
 
 Dependencies
 ------------
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+Роль зависит от роли `clickhouse`. LightHouse требует работающий сервер ClickHouse для своей функциональности. Зависимость объявлена в `meta/main.yml` и будет автоматически выполнена перед этой ролью, если ClickHouse еще не установлен.
+
+Если ClickHouse и LightHouse находятся на одном хосте, зависимость выполнится один раз. Если на разных — убедитесь, что хост с ClickHouse доступен с хоста LightHouse и обновите настройки проксирования в шаблоне Nginx.
+
+Для установки ClickHouse отдельно можно использовать роль `clickhouse`:
+
+```yaml
+- hosts: clickhouse
+  roles:
+    - role: clickhouse
+```
 
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```yaml
+- hosts: lighthouse
+  become: true
+  roles:
+    - role: lighthouse-role
+      lighthouse_repo_url: "https://github.com/VKCOM/lighthouse/archive/refs/heads/master.tar.gz"
+      lighthouse_install_dir: "/var/www/lighthouse"
+      nginx_config_path: "/etc/nginx/sites-available/lighthouse"
+      nginx_enabled_path: "/etc/nginx/sites-enabled/lighthouse"
+```
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+Minimal Example 
+----------------
+```yaml
+- hosts: lighthouse
+  become: true
+  roles:
+    - lighthouse-role
+```
+
+Этот пример установит LightHouse с настройками по умолчанию (Nginx на 80 порту, статика в /var/www/lighthouse, прокси на localhost:8123).
 
 License
 -------
 
-BSD
+MIT
 
 Author Information
 ------------------
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+Kristina Filimonova - Netology student.
