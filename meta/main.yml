@@ -1,0 +1,23 @@
+galaxy_info:
+  author: Kristina Filimonova
+  description: Ansible role for installing and configuring LightHouse web GUI for ClickHouse
+  company: Netology
+
+  license: MIT
+
+  min_ansible_version: 2.10
+
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+        - noble
+        
+  galaxy_tags:
+    - clickhouse
+    - lighthouse
+    - nginx
+
+dependencies:
+   - role: clickhouse

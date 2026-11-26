@@ -1,0 +1,3 @@
+---
+nginx_config_path: "/etc/nginx/sites-available/lighthouse"
+nginx_enabled_path: "/etc/nginx/sites-enabled/lighthouse"
